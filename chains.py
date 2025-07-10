@@ -45,7 +45,7 @@ def get_vector_store():
 
 def get_retreiver_chain(vector_store):
 
-    llm = ChatOpenAI(model = "o3-2025-04-16")
+    llm = ChatOpenAI(model = "o3-2025-04-16", temperature=1)
 
     faiss_retriever = vector_store.as_retriever(
        search_kwargs={"k": 5},
@@ -73,7 +73,7 @@ def get_retreiver_chain(vector_store):
 
 def get_conversational_rag(history_retriever_chain):
   # Create end-to-end RAG chain
-  llm = ChatOpenAI(model = "o3-2025-04-16")
+  llm = ChatOpenAI(model = "o3-2025-04-16", temperature=1)
 
   answer_prompt = ChatPromptTemplate.from_messages([
       ("system",SYSTEM_PROMPT+"\n\n{context}"),
