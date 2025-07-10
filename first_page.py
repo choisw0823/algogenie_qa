@@ -11,6 +11,7 @@ def first_page():
     **Important Notice:**
     - This tool is exclusively for the Programming course for high school student. **Do not** use it for any other purposes.
     - There is a rate limit on GPT-4 usage. Please be mindful of your usage to ensure that all students have an equal opportunity to benefit from this tool.
+    - **Student IDs found to be using this tool for purposes other than for the course, or with abnormally high usage, may have their access revoked.**
     - Conversations with the Virtual TA will be stored and can be used for research purposes. However, your student ID will be thoroughly anonymized. **Do not** include any identifying information in your conversations.
     - Since the model may hallucinate, for matters directly related to grades (e.g., project submission deadlines), be sure to check the relevant documents directly or contact the TA.
     - By using this Virtual TA, you agree to these terms and conditions.
