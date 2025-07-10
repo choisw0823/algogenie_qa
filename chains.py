@@ -45,7 +45,7 @@ def get_vector_store():
 
 def get_retreiver_chain(vector_store):
 
-    llm = ChatOpenAI(model = "gpt-4o-mini", temperature = 0)
+    llm = ChatOpenAI(model = "o3-2025-04-16", temperature = 0)
 
     faiss_retriever = vector_store.as_retriever(
        search_kwargs={"k": 5},
