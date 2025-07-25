@@ -174,6 +174,8 @@ def get_final_answer(user_input, chat_history):
         "input": user_input,
         "chat_history": chat_history
     }
+    # 실제 프롬프트 렌더링
+    planner_prompt_rendered = ROUTING_PROMPT.format(**planner_input)
     planner_output = router.invoke(planner_input)
 
     # 2. Executor를 통해 초기 답변 생성
@@ -182,6 +184,25 @@ def get_final_answer(user_input, chat_history):
         "input": user_input,
         "chat_history": chat_history
     }
+    # executor 단계 프롬프트 추출 (카테고리에 따라 다름)
+    if planner_output.get('category') == 'retrieval_qa':
+        exec_prompt_rendered = qa_prompt_template_str.format(
+            syllabus=SYLLABUS,
+            previous_learned_contents=PREVIOUS_LEARNED_CONTENTS,
+            context=str(retriever.invoke(planner_output['arguments']['retrieval_query'])),
+            chat_history=chat_history,
+            input=planner_output['arguments']['question']
+        )
+    elif planner_output.get('category') == 'qa':
+        exec_prompt_rendered = qa_prompt_template_str.format(
+            syllabus=SYLLABUS,
+            previous_learned_contents=PREVIOUS_LEARNED_CONTENTS,
+            context="No context provided",
+            chat_history=chat_history,
+            input=planner_output['arguments']['question']
+        )
+    else:
+        exec_prompt_rendered = None
     initial_answer_result = branch.invoke(executor_input)
     
     if isinstance(initial_answer_result, dict) and 'answer' in initial_answer_result:
@@ -197,14 +218,18 @@ def get_final_answer(user_input, chat_history):
         "question": user_input,
         "initial_answer": initial_answer
     }
+    reflector_prompt_rendered = reflection_prompt_template.format(**reflector_input)
     final_answer = reflection_chain.invoke(reflector_input)
 
     reasoning = {
         "1_planner_input": planner_input,
+        "1_planner_prompt": planner_prompt_rendered,
         "1_planner_output": planner_output,
         "2_executor_input": executor_input,
+        "2_executor_prompt": exec_prompt_rendered,
         "2_initial_answer": initial_answer,
         "3_reflector_input": reflector_input,
+        "3_reflector_prompt": reflector_prompt_rendered,
         "3_final_answer": final_answer
     }
 
