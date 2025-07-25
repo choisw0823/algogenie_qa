@@ -1,12 +1,9 @@
 import streamlit as st
-from chains import get_vector_store, get_retreiver_chain, get_conversational_rag
+from agent import get_final_answer
 from langchain_core.messages import HumanMessage,AIMessage
 from langchain_core.tracers.context import collect_runs
 from langsmith import Client
 from streamlit_feedback import streamlit_feedback
-from utils import load_docs_from_jsonl
-from langchain_community.document_loaders.csv_loader import CSVLoader
-
 import uuid
 
 client = Client()
@@ -31,13 +28,9 @@ def second_page():
 
 
     if "chat_history" not in st.session_state:
-        st.session_state.chat_history = []   
-    if "vector_store" not in st.session_state:
-        st.session_state.vector_store = get_vector_store()
+        st.session_state.chat_history = []
     if "dialog_identifier" not in st.session_state:
         st.session_state.dialog_identifier = uuid.uuid4()
-    # if "doc" not in st.session_state:
-    #     st.session_state.docs = load_docs_from_jsonl("docs/doc.jsonl")
 
 
     for message in st.session_state.chat_history:
@@ -50,19 +43,12 @@ def second_page():
 
 
     def get_response(user_input):
-        history_retriever_chain = get_retreiver_chain(st.session_state.vector_store)
-        conversation_rag_chain = get_conversational_rag(history_retriever_chain)
-        response = conversation_rag_chain.invoke({
-            "chat_history":st.session_state.chat_history,
-            "input":user_input,
-            "student_id" : st.session_state.student_id,
-            "dialog_identifier" : st.session_state.dialog_identifier
-        })
-        return response["answer"]
+        response = get_final_answer(user_input, st.session_state.chat_history)
+        return response
 
     if user_input := st.chat_input("Type your message here..."):
         st.chat_message("Human").write(f"{user_input}")
-        
+
         with collect_runs() as cb:
             with st.spinner("Thinking..."):
                 response = get_response(user_input)
