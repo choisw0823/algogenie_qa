@@ -170,10 +170,11 @@ reflection_chain = REFLECTION_PROMPT | reflector_llm | StrOutputParser()
 # --- Main Agent Logic ---
 def get_final_answer(user_input, chat_history):
     # 1. Planner를 통해 라우팅 결정
-    planner_output = router.invoke({
+    planner_input = {
         "input": user_input,
         "chat_history": chat_history
-    })
+    }
+    planner_output = router.invoke(planner_input)
 
     # 2. Executor를 통해 초기 답변 생성
     executor_input = {
@@ -189,17 +190,21 @@ def get_final_answer(user_input, chat_history):
         initial_answer = str(initial_answer_result)
 
     # 3. Reflector를 통해 답변 검증 및 최종 답변 생성
-    final_answer = reflection_chain.invoke({
+    reflector_input = {
         "syllabus": SYLLABUS,
         "previous_learned_contents": PREVIOUS_LEARNED_CONTENTS,
         "chat_history": chat_history,
         "question": user_input,
         "initial_answer": initial_answer
-    })
+    }
+    final_answer = reflection_chain.invoke(reflector_input)
 
     reasoning = {
+        "1_planner_input": planner_input,
         "1_planner_output": planner_output,
+        "2_executor_input": executor_input,
         "2_initial_answer": initial_answer,
+        "3_reflector_input": reflector_input,
         "3_final_answer": final_answer
     }
 
