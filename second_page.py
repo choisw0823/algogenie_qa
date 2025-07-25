@@ -43,16 +43,19 @@ def second_page():
 
 
     def get_response(user_input):
-        response = get_final_answer(user_input, st.session_state.chat_history)
-        return response
+        response, reasoning = get_final_answer(user_input, st.session_state.chat_history)
+        return response, reasoning
 
     if user_input := st.chat_input("Type your message here..."):
         st.chat_message("Human").write(f"{user_input}")
 
         with collect_runs() as cb:
             with st.spinner("Thinking..."):
-                response = get_response(user_input)
+                response, reasoning = get_response(user_input)
                 st.chat_message("AI").write(f"{response}")
+                
+                with st.expander("Reasoning"):
+                    st.json(reasoning)
 
                 st.session_state.chat_history.append(HumanMessage(content=user_input))
                 st.session_state.chat_history.append(AIMessage(content=response))

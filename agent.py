@@ -86,7 +86,7 @@ ROUTING_PROMPT = PromptTemplate.from_template(routing_prompt_template)
 router = ROUTING_PROMPT | planner_llm | JsonOutputParser()
 
 # 2. Executor Chains
-llm_for_qa = ChatOpenAI(model="gpt-4o-mini", temperature=0.7)
+llm_for_qa = ChatOpenAI(model="o3-2025-04-16", temperature=0.7)
 
 # 2a. retrieval_qa chain
 doc_prompt = ChatPromptTemplate.from_template(qa_prompt_template_str)
@@ -169,18 +169,26 @@ reflection_chain = REFLECTION_PROMPT | reflector_llm | StrOutputParser()
 
 # --- Main Agent Logic ---
 def get_final_answer(user_input, chat_history):
-    # 1. Planner & Executor를 통해 초기 답변 생성
-    initial_answer_result = full_executor_chain.invoke({
+    # 1. Planner를 통해 라우팅 결정
+    planner_output = router.invoke({
         "input": user_input,
         "chat_history": chat_history
     })
+
+    # 2. Executor를 통해 초기 답변 생성
+    executor_input = {
+        "topic": planner_output,
+        "input": user_input,
+        "chat_history": chat_history
+    }
+    initial_answer_result = branch.invoke(executor_input)
     
     if isinstance(initial_answer_result, dict) and 'answer' in initial_answer_result:
         initial_answer = initial_answer_result['answer']
     else:
         initial_answer = str(initial_answer_result)
 
-    # 2. Reflector를 통해 답변 검증 및 최종 답변 생성
+    # 3. Reflector를 통해 답변 검증 및 최종 답변 생성
     final_answer = reflection_chain.invoke({
         "syllabus": SYLLABUS,
         "previous_learned_contents": PREVIOUS_LEARNED_CONTENTS,
@@ -189,7 +197,13 @@ def get_final_answer(user_input, chat_history):
         "initial_answer": initial_answer
     })
 
-    return final_answer
+    reasoning = {
+        "1_planner_output": planner_output,
+        "2_initial_answer": initial_answer,
+        "3_final_answer": final_answer
+    }
+
+    return final_answer, reasoning
 
 # Example Usage:
 if __name__ == '__main__':
@@ -198,8 +212,9 @@ if __name__ == '__main__':
         user_input = input("User: ")
         if user_input.lower() == "exit":
             break
-        response = get_final_answer(user_input, chat_history)
+        response, reasoning = get_final_answer(user_input, chat_history)
         print(f"Assistant: {response}")
+        print(f"Reasoning: {reasoning}")
         from langchain_core.messages import HumanMessage, AIMessage
         chat_history.append(HumanMessage(content=user_input))
         chat_history.append(AIMessage(content=response)) 
