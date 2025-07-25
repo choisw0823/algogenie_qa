@@ -75,7 +75,7 @@ You MUST choose one of the following categories:
    - Example: {{"category": "off_topic", "arguments": {{}}}}
 
 Analyze the chat history and the user's new chat, then return a JSON object with the appropriate category and arguments.
-
+Argument should be korean to fully reflect meaning.
 [Chat History]
 {chat_history}
 
