@@ -86,7 +86,7 @@ ROUTING_PROMPT = PromptTemplate.from_template(routing_prompt_template)
 router = ROUTING_PROMPT | planner_llm | JsonOutputParser()
 
 # 2. Executor Chains
-llm_for_qa = ChatOpenAI(model="o3-2025-04-16", temperature=0.7)
+llm_for_qa = ChatOpenAI(model="o3-2025-04-16", temperature=1)
 
 # 2a. retrieval_qa chain
 doc_prompt = ChatPromptTemplate.from_template(qa_prompt_template_str)
